@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Sentimint — Tokenizing the human experience. Capture, preserve and gift life's most precious moments as monetizable on-chain memories."
+    />
+    <title>Sentimint — Tokenizing the Human Experience</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind via CDN (utility surface; design tokens live in style.css) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['Syne', 'ui-sans-serif', 'system-ui'],
+              body: ['Space Grotesk', 'ui-sans-serif', 'system-ui'],
+            },
+            colors: {
+              ink: '#010101',
+              bone: '#ffffff',
+              gold: '#d9b87a',
+              amber: '#ffd19a',
+              mud: '#5b4f41',
+              line: '#524a41',
+              bronze: '#8f7c65',
+            },
+          },
+        },
+      };
+    </script>
+
+    <link rel="stylesheet" href="./style.css" />
+
+    <!-- Three.js + GLTFLoader for the WebGL hero scene -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  </head>
+
+  <body class="font-body bg-ink text-bone antialiased selection:bg-gold/40 selection:text-ink">
+    <!-- Atmospheric ambient layer.
+         A single continuous canvas with two massive overlapping ellipses
+         (Figma "Ellipse 16" upper + "Ellipse 18" middle transition) so the
+         mud-gold haze bleeds seamlessly from the Hero through the Feature
+         showcase without per-section cuts. -->
+    <div class="ambient" aria-hidden="true">
+      <span class="ambient__blur ambient__blur--e16"></span>
+      <span class="ambient__blur ambient__blur--e18"></span>
+      <span class="ambient__grain"></span>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- LEFT FIXED PILL NAV                                            -->
+    <!-- ============================================================= -->
+    <nav class="side-pill side-pill--left" aria-label="Primary">
+      <!-- Sliding active indicator (Ellipse 80) — animated by app.js -->
+      <span class="side-pill__indicator" aria-hidden="true"></span>
+      <ul class="side-pill__list">
+        <li>
+          <a href="#hero" class="side-pill__btn is-active" aria-label="Home">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 3.5 3 11v9.5a1 1 0 0 0 1 1h5V15h6v6.5h5a1 1 0 0 0 1-1V11Z"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#feature" class="side-pill__btn" aria-label="Features">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="10" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4 19c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M18 8v6M15 11h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#team" class="side-pill__btn" aria-label="Team">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.5" y="7.5" width="17" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M9 7V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M3.5 12h17" stroke="currentColor" stroke-width="1.6"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#toolkit" class="side-pill__btn" aria-label="Toolkit">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M8 5h8l-.5 8a3.5 3.5 0 0 1-7 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="M10 18h4M12 16v3M5 6h2M17 6h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#testimonials" class="side-pill__btn" aria-label="Testimonials">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="15" cy="10" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="m13 12-9 9 2 2 9-9" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+              <path d="m8 17 2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#footer" class="side-pill__btn" aria-label="Settings">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M19.4 13.5a7.5 7.5 0 0 0 0-3l2-1.5-2-3.5-2.4.9a7.5 7.5 0 0 0-2.6-1.5L14 2h-4l-.4 2.4a7.5 7.5 0 0 0-2.6 1.5L4.6 5l-2 3.5L4.6 10a7.5 7.5 0 0 0 0 3l-2 1.5 2 3.5 2.4-.9a7.5 7.5 0 0 0 2.6 1.5L10 22h4l.4-2.4a7.5 7.5 0 0 0 2.6-1.5l2.4.9 2-3.5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- ============================================================= -->
+    <!-- RIGHT FIXED SOCIAL RAIL                                        -->
+    <!-- ============================================================= -->
+    <aside class="side-pill side-pill--right" aria-label="Social">
+      <ul class="side-pill__list side-pill__list--social">
+        <li>
+          <a href="#" class="side-pill__btn side-pill__btn--social" aria-label="Telegram">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M9.5 15.4 9.3 19a1 1 0 0 0 1.6.8l2.2-2 4.6 3.4c.9.5 1.5.2 1.7-.8L22 5.5c.3-1.2-.4-1.7-1.3-1.4L3.4 10.6c-1.2.5-1.2 1.1-.2 1.4l4.4 1.4 10.2-6.5c.5-.3.9-.1.5.2Z" />
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="side-pill__btn side-pill__btn--social" aria-label="X">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M17.5 3h3l-7 8 8.2 10h-6.4l-5-6.5L4.5 21h-3l7.5-8.6L1.2 3h6.6l4.5 6Zm-1 16h1.7L7.6 4.8H5.8Z" />
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="side-pill__btn side-pill__btn--social" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="currentColor" stroke-width="1.6" />
+              <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6" />
+              <circle cx="17" cy="7" r="1.1" fill="currentColor" />
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="side-pill__btn side-pill__btn--social" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" stroke-width="1.6" />
+              <path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- ============================================================= -->
+    <!-- CENTER COLUMN                                                  -->
+    <!-- ============================================================= -->
+    <main class="shell">
+      <!-- ===== Top bar (logo + utility chip) ===== -->
+      <header class="topbar">
+        <a href="#hero" class="brand" aria-label="Sentimint home">
+          <svg class="brand__logo" width="254" height="48" viewBox="0 0 254 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g clip-path="url(#clip0_1_154)">
+              <path d="M195.577 37.1577L177.502 14.0459H173.741V26.0282C173.151 25.2715 172.558 24.5148 171.968 23.7613C170.221 21.5264 168.47 19.2883 166.723 17.0535C165.937 16.0499 165.155 15.0495 164.369 14.0459H160.608L160.717 14.1805C160.499 14.2735 160.611 14.6775 160.611 14.9597C160.611 15.8126 160.611 16.6655 160.611 17.5184C160.611 19.2242 160.611 20.9268 160.611 22.6326C160.611 26.041 160.611 29.4527 160.611 32.8611C160.611 33.9513 160.611 35.0446 160.611 36.1348C160.611 36.4907 160.611 36.8595 160.768 37.1769C160.993 37.6354 161.48 37.8984 161.945 38.1036C163.696 38.8795 165.78 39.2964 167.492 38.4434C168.48 37.9497 169.243 37.0743 169.73 36.0835C170.221 35.0959 170.452 33.9962 170.564 32.8964C170.676 31.7933 170.666 30.6871 170.577 29.5841C170.477 28.3657 170.272 27.1505 170.022 25.9513C171.349 27.6314 172.683 29.3084 174.004 30.9917C175.216 32.534 176.364 34.1917 177.727 35.6058C177.881 35.7661 178.044 35.92 178.214 36.0643C179.442 37.1256 181.046 37.9272 182.681 38.0362C183.479 38.0907 184.294 37.9529 184.996 37.5585C185.467 37.2923 185.874 36.9557 186.128 36.4747C186.221 36.2951 186.291 36.1092 186.352 35.9168C186.689 34.8042 186.567 33.544 186.426 32.4058C186.291 31.322 186.057 30.2575 185.81 29.1929L192.146 37.1513H195.577V37.1577ZM169.535 30.9949C169.227 32.6078 168.717 34.5316 167.178 35.3909C165.655 36.2406 163.311 35.843 162.246 34.4066C161.563 33.4863 161.538 32.2519 161.541 31.1072C161.551 26.009 161.56 20.9108 161.57 15.8126C161.57 15.617 161.57 15.4182 161.547 15.2258C162.384 16.2839 163.218 17.342 164.055 18.4002C165.95 20.8018 167.848 23.2002 169.743 25.6018C169.788 25.6595 169.836 25.7172 169.881 25.7781C169.881 27.5224 169.865 29.2795 169.535 30.9982V30.9949ZM185.929 33.3741C185.855 34.0859 185.753 34.9004 185.147 35.3717C184.537 35.8462 183.675 35.7661 182.969 35.609C181.049 35.1825 178.807 32.5084 177.393 30.6968C176.48 29.5264 175.563 28.3561 174.649 27.1889V15.1841L185.765 29.1448C185.871 30.344 186.041 32.2679 185.929 33.3741Z" fill="white"/>
+              <path d="M63.7437 23.9808C59.957 22.8425 57.5105 21.8935 57.5105 19.588C57.5105 17.1351 60.5566 16.263 62.8043 16.263C63.4712 16.263 64.1477 16.3431 64.8083 16.4939C66.8443 16.9556 68.6463 18.1259 69.9962 19.7195L70.8716 20.7552V16.6157L70.6792 16.4169C68.6367 14.3007 65.9754 13.2265 62.7722 13.2265C60.1205 13.2265 57.254 13.9961 55.8688 15.3941C54.7722 16.5003 54.2239 17.9367 54.2367 19.6586C54.2367 23.9295 58.6167 25.6257 62.2752 26.7223C66.4211 27.9407 67.9954 28.8866 67.9954 31.1151C67.9954 33.3436 65.8087 34.5427 62.8748 34.5427C60.6463 34.5427 59.0784 34.1644 57.4367 32.9331C56.7698 32.4329 55.6251 31.3171 54.2367 28.4955L54.3842 33.3403L54.5349 33.5488C56.3081 35.992 59.2451 37.5504 62.9069 37.5504C65.5425 37.5504 68.2006 36.7712 69.6051 35.3572C70.7113 34.2446 71.2852 32.7536 71.2724 31.051C71.2724 26.9339 68.0018 25.2474 63.7469 23.9872L63.7437 23.9808Z" fill="white"/>
+              <path d="M77.0959 36.9589V14.0459H93.4806V16.9348H80.4947V22.918H93.4806V25.637H80.4947V34.0667H93.4806V36.9557H77.0959V36.9589Z" fill="white"/>
+              <path d="M136.641 16.9348V36.9589H133.242V16.9348H124.947V14.0459H144.904V16.9348H136.644H136.641Z" fill="white"/>
+              <path d="M197.969 36.9589V14.0459H201.368V36.9589H197.969Z" fill="white"/>
+              <path d="M150.166 36.9591V14.0461H153.565V36.9591H150.166Z" fill="white"/>
+              <path d="M224.838 14.047V29.6494L209.303 13.5019H208.828V18.1127L227.797 37.5051H228.205V14.047H224.838Z" fill="white"/>
+              <path d="M209.017 18.1132H208.828V36.9605H212.567C212.291 29.7365 210.646 24.1958 209.017 18.1132Z" fill="white"/>
+              <path d="M245.077 16.9348V36.9589H241.678V16.9348H233.383V14.0459H253.34V16.9348H245.08H245.077Z" fill="white"/>
+              <path d="M116.4 14.047V29.6494L100.865 13.5019H100.391V18.1127L119.36 37.5051H119.767V14.047H116.4Z" fill="white"/>
+              <path d="M100.58 18.1132H100.391V36.9605H104.129C103.854 29.7365 102.209 24.1958 100.58 18.1132Z" fill="white"/>
+              <path d="M16.9686 0.0310876C16.9686 0.0310876 16.9686 0.0246747 16.9686 0.0214683C16.975 0.00543626 16.9814 -0.000976562 16.991 -0.000976562H16.5293C16.6704 0.0663581 16.8211 0.0214683 16.9686 0.0310876Z" fill="white"/>
+              <path d="M17.0006 0.0567389C16.9782 0.0503261 16.9686 0.0407068 16.9686 0.0310876C16.8211 0.0214683 16.6704 0.0663581 16.5293 -0.000976562C16.6768 0.104835 16.8403 0.0727709 17.0006 0.0567389Z" fill="white"/>
+              <path d="M16.9688 0.0216359C16.9688 0.0216359 16.9688 0.0280214 16.9688 0.0312142C16.9751 0.0312142 16.9847 0.0312142 16.9911 0.0312142C16.9911 0.0216359 16.9911 0.00886482 16.9911 -0.00390625C16.9847 -0.00390625 16.9751 0.00247929 16.9688 0.0184431V0.0216359Z" fill="white"/>
+              <path d="M17.0007 0.054839C17.0007 0.054839 16.9911 0.0388752 16.9911 0.0292969C16.9847 0.0292969 16.9751 0.0292969 16.9688 0.0292969C16.9688 0.0388752 16.9815 0.0484535 17.0007 0.054839Z" fill="white"/>
+              <path d="M48.3167 18.5545C48.2205 17.2623 47.7107 16.1625 46.8418 15.2134C46.2133 14.5304 45.5015 13.934 44.7416 13.4146C42.9428 12.1801 41.7051 10.5256 40.8907 8.5152C40.3776 7.24226 39.778 6.00458 38.9797 4.88234C37.447 2.72763 35.3243 1.63104 32.7175 1.38414C31.1784 1.23665 29.6586 1.39376 28.1452 1.615C25.4582 2.00619 22.845 1.79777 20.2831 0.890355C19.2185 0.515204 18.1348 0.181737 17.0029 0.0598936C16.8426 0.0759257 16.6791 0.104783 16.5316 0.00217819H15.5408C15.0951 0.136848 14.6302 0.191357 14.1909 0.35809C12.6037 0.970515 11.5744 2.15689 10.8017 3.6126C10.2566 4.63865 9.84939 5.72883 9.36843 6.78374C8.44819 8.79737 6.92835 10.2114 5.0013 11.2374C4.02334 11.7569 3.04218 12.2827 2.18927 12.9978C0.829755 14.136 0.121138 15.611 0.00570679 17.3745V17.9068C0.0570094 19.3497 0.614925 20.5585 1.54158 21.6679C7.21052 28.4559 12.8506 35.2663 18.3079 42.2242C18.5805 42.5705 18.8402 42.9264 19.1095 43.2727C19.1608 43.3368 19.2121 43.4427 19.3147 43.4106C19.4173 43.3785 19.3853 43.2599 19.3917 43.1797C19.4077 42.9938 19.4141 42.8078 19.4141 42.6186C19.4141 36.7284 19.4141 30.8382 19.4141 24.9481C19.4141 24.1336 19.4141 23.3192 19.4237 22.5048C19.4269 22.0014 19.5231 21.8924 20.0073 21.7962C20.8795 21.6262 21.7612 21.6871 22.6398 21.7096C22.97 21.7192 23.3003 21.7224 23.6306 21.7449C24.0891 21.7737 24.4578 21.9533 24.7464 22.3445C26.7183 25.0154 28.6999 27.6799 30.6815 30.3445C32.7881 33.1757 34.9011 36.0038 37.0109 38.8318C37.0494 38.8831 37.0911 38.9344 37.1296 38.9889C37.168 39.0467 37.2193 39.1012 37.2867 39.0948C37.3829 39.0819 37.3893 38.9857 37.3893 38.9152C37.4021 38.4984 37.4149 38.0783 37.4149 37.6615C37.4149 33.4002 37.4085 29.1388 37.4117 24.8807C37.4117 24.0984 37.4342 23.3192 37.4534 22.5368C37.4662 22.0366 37.6522 21.7865 38.1524 21.7577C39.3484 21.6807 40.5508 21.6102 41.7404 21.8186C42.263 21.9084 42.651 22.2579 42.962 22.6651C43.77 23.7232 44.5556 24.7942 45.354 25.8587C45.7163 26.3429 46.0883 26.8206 46.457 27.2984C46.5115 27.3689 46.5692 27.4362 46.6366 27.4908C46.7328 27.5709 46.8322 27.6992 46.9764 27.635C47.0983 27.5805 47.1079 27.4362 47.1175 27.3208C47.156 26.8399 47.1881 26.3557 47.2169 25.8715C47.2971 24.5569 47.6658 23.3 47.948 22.0238C48.1981 20.8823 48.4097 19.7409 48.3231 18.5609L48.3167 18.5545ZM18.6414 13.2896C18.2887 13.4403 17.9328 13.5845 17.5768 13.7256C16.461 14.1681 15.7877 14.9601 15.6434 16.1721C15.6338 16.2587 15.6209 16.3453 15.6017 16.4318C15.5536 16.6563 15.4157 16.7781 15.1881 16.7813C14.9508 16.7813 14.7873 16.6755 14.7392 16.4318C14.7039 16.2491 14.6879 16.0599 14.6494 15.8771C14.4249 14.7581 13.7035 14.0815 12.6774 13.6807C12.3215 13.5397 11.9656 13.3986 11.6129 13.2415C11.3949 13.1453 11.2538 12.9817 11.3083 12.722C11.3596 12.4815 11.536 12.3821 11.7604 12.3597C13.059 12.225 13.8734 11.4875 14.332 10.3012C14.4602 9.9645 14.5917 9.62462 14.7424 9.29757C14.8257 9.1148 14.9572 8.9609 15.1977 8.97693C15.4766 8.99296 15.5985 9.17252 15.637 9.42583C15.7075 9.88755 15.8678 10.3172 16.1147 10.7116C16.6758 11.6094 17.4839 12.1513 18.5195 12.3469C18.7728 12.395 18.9973 12.4559 19.039 12.7541C19.0774 13.0555 18.8722 13.1869 18.6414 13.2896Z" fill="white"/>
+              <path d="M29.3183 33.5655C27.8882 31.0035 26.1375 28.6629 24.3515 26.3478C23.5788 25.3474 22.8092 24.3502 22.0365 23.3498C22.0108 23.3562 21.9884 23.3595 21.9627 23.3659V23.616C21.9627 30.0352 21.9627 36.4544 21.9627 42.8737C21.9627 43.3546 22.0557 43.8228 22.2994 44.2364C22.8317 45.1502 23.4858 45.9807 24.1463 46.8015C24.9832 47.8404 26.099 48.1546 27.3688 47.927C29.0842 47.6192 30.2385 46.5546 30.9824 45.0348C31.9026 43.1591 31.9667 41.1839 31.5531 39.1735C31.1395 37.1727 30.309 35.3354 29.3183 33.5655Z" fill="white"/>
+              <path d="M41.8135 25.6317C41.2587 24.8814 40.704 24.1375 40.0948 23.3166C40.082 23.5956 40.066 23.788 40.066 23.9804C40.0595 27.998 40.0499 32.0156 40.0467 36.0333C40.0467 37.1876 40.0467 38.3451 40.0531 39.4994C40.0531 39.5603 40.0467 39.6533 40.082 39.679C40.1622 39.7431 40.2167 39.6469 40.2744 39.602C40.5149 39.4096 40.7489 39.2108 40.9958 39.0248C42.1726 38.1335 43.4616 37.4184 44.6736 36.5816C45.7638 35.8281 46.7834 34.9976 47.5369 33.8818C47.6748 33.6765 47.6812 33.5451 47.5273 33.3399C45.6195 30.7747 43.7181 28.2 41.8167 25.6285L41.8135 25.6317Z" fill="white"/>
+              <path d="M9.21868 37.5531C7.04152 34.4749 4.75214 31.4833 2.52369 28.4436C2.16777 27.9595 1.80866 27.4785 1.4335 26.9719C1.40465 27.0424 1.38541 27.0713 1.38541 27.097C1.32128 28.1519 1.20585 29.2004 1.1802 30.2585C1.15134 31.541 1.35976 32.7755 1.87599 33.9523C2.57178 35.5394 3.82549 36.5719 5.30685 37.3767C6.75294 38.1623 8.28882 38.7683 9.68681 39.6436C9.85355 39.7495 10.0299 39.7527 10.171 39.6116C10.3217 39.4641 10.3441 39.2845 10.2255 39.1018C9.89202 38.5855 9.57459 38.0565 9.21868 37.5563V37.5531Z" fill="white"/>
+            </g>
+            <defs>
+              <clipPath id="clip0_1_154">
+                <rect width="253.339" height="48" fill="white"/>
+              </clipPath>
+            </defs>
+          </svg>
+        </a>
+
+        <div class="utility-chip" role="group" aria-label="Utility">
+          <!-- Note-coin icon (Frame 1707478474 → note-coin-2.png placeholder) -->
+          <span class="utility-chip__coin" aria-hidden="true">
+            <svg viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="10" stroke="#D1BBA3" stroke-width="1.6" />
+              <path d="M14 8v12M10 11h6a2 2 0 0 1 0 4h-6M10 15h6a2 2 0 0 1 0 4h-6" stroke="#D1BBA3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span class="utility-chip__count">0</span>
+          <button class="utility-chip__menu" aria-label="Open menu">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5 9h14M5 14h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- ===================================================== -->
+      <!-- HERO                                                  -->
+      <!-- ===================================================== -->
+      <section id="hero" class="hero">
+        <h1 class="hero__title" data-word-reveal>
+          Tokenizing the<br />Human Experience
+        </h1>
+
+        <!-- WebGL hero scene — Three.js renders sentimint-box.glb here -->
+        <div class="hero__stage" data-parallax-stage>
+          <div class="hero__stage-inner" data-parallax-inner>
+            <canvas id="hero-canvas" class="w-full h-full" aria-hidden="true"></canvas>
+            <!-- Fallback shown only if WebGL is unavailable or the GLB fails -->
+            <div class="hero__fallback" aria-hidden="true"></div>
+          </div>
+
+          <p class="hero__tagline">
+            Where Intrinsic Value<br />Becomes Monetizable
+          </p>
+        </div>
+
+        <a href="#feature" class="scroll-cue" aria-label="Scroll down">
+          <span>Scroll Down</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="m6 10 6 6 6-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      </section>
+
+      <!-- ===================================================== -->
+      <!-- FEATURE SHOWCASE                                      -->
+      <!-- ===================================================== -->
+      <section id="feature" class="feature" data-reveal>
+        <article class="feature__card">
+          <div class="feature__bg" aria-hidden="true"></div>
+          <div class="feature__content">
+            <h2 class="feature__title">
+              Capture life's most<br />precious moments like<br />never before.
+            </h2>
+            <a href="#" class="btn btn--cream" data-magnetic>Try Now</a>
+          </div>
+
+          <ul class="feature__pills">
+            <li class="feature__pill">
+              <span class="feature__pill-icon" aria-hidden="true">
+                <svg viewBox="0 0 28 28" fill="none">
+                  <path d="M5 9h18l-2 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z" stroke="#D1BBA3" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M10 9V7a4 4 0 0 1 8 0v2" stroke="#D1BBA3" stroke-width="1.6"/>
+                </svg>
+              </span>
+              <div>
+                <h3>Tokenizing Experiences</h3>
+                <p>Whether it's a concert or wedding day, immortalize authentic moments and capture the essence of your experience with AI-enhancement.</p>
+              </div>
+            </li>
+            <li class="feature__pill">
+              <span class="feature__pill-icon" aria-hidden="true">
+                <svg viewBox="0 0 28 28" fill="none">
+                  <rect x="5" y="10" width="18" height="13" rx="1.5" stroke="#D1BBA3" stroke-width="1.6"/>
+                  <path d="M3 10h22M14 10v13" stroke="#D1BBA3" stroke-width="1.6"/>
+                  <path d="M14 10c-3-4-7-4-7-1s4 1 7 1Zm0 0c3-4 7-4 7-1s-4 1-7 1Z" stroke="#D1BBA3" stroke-width="1.4" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div>
+                <h3>Sentimint Gifts</h3>
+                <p>Personalize and send digital or physical gifts inscribed with special memories.</p>
+              </div>
+            </li>
+            <li class="feature__pill">
+              <span class="feature__pill-icon" aria-hidden="true">
+                <svg viewBox="0 0 28 28" fill="none">
+                  <circle cx="14" cy="14" r="9" stroke="#D1BBA3" stroke-width="1.6"/>
+                  <path d="M14 8v12M11 11h5a2 2 0 0 1 0 4h-5M11 15h6a2 2 0 0 1 0 4h-6" stroke="#D1BBA3" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div>
+                <h3>Monetized Memories</h3>
+                <p>Creators can now transform their life experiences into valuable assets.</p>
+              </div>
+            </li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- ===================================================== -->
+      <!-- PRODUCT TOOLKIT                                       -->
+      <!-- ===================================================== -->
+      <section id="toolkit" class="toolkit" data-reveal>
+        <header class="toolkit__head">
+          <h2 class="section-title">
+            Memory<br />Preservation<br />Toolkit
+          </h2>
+        </header>
+
+        <div class="toolkit__grid">
+          <!-- Phone mockup stack (left) — real app screenshots -->
+          <div class="toolkit__phones" aria-hidden="true">
+            <!-- Back phone: Gift Red Packets screen -->
+            <div class="phone phone--back">
+              <img src="image-mockupcard1.jpg" alt="" class="phone__img" />
+            </div>
+            <!-- Front phone: Take a Moment screen -->
+            <div class="phone phone--front">
+              <img src="image-mockupcard2.jpg" alt="" class="phone__img" />
+            </div>
+          </div>
+
+          <!-- Stepped list (right) — Frame 1707478663 -->
+          <div class="toolkit__steps-wrap">
+            <ol class="toolkit__steps">
+              <li class="toolkit__step">
+                <span class="toolkit__num">01</span>
+                <p>Capture the essence of human experiences and enhance them with AI</p>
+              </li>
+              <li class="toolkit__step">
+                <span class="toolkit__num">02</span>
+                <p>Preserve and secure Sentimints with blockchain, transforming them into a shareable and tradeable asset</p>
+              </li>
+              <li class="toolkit__step">
+                <span class="toolkit__num">03</span>
+                <p>Inscribe your tokenized memories and experiences to consumer products</p>
+              </li>
+            </ol>
+            <a href="#" class="btn btn--cream toolkit__cta" data-magnetic>Try Now</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <!-- TEAM                                                  -->
+      <!-- ===================================================== -->
+      <section id="team" class="team" data-reveal>
+        <h2 class="section-title">Our Team</h2>
+
+        <div class="team__grid">
+          <!-- Card 1 -->
+          <article class="team-card glass" data-reveal-child>
+            <div class="team-card__avatar">
+              <div class="team-card__avatar-img team-card__avatar-img--yuri" aria-hidden="true"></div>
+            </div>
+            <header class="team-card__head">
+              <h3>Yuri Choi</h3>
+              <p>Founder &amp; CEO</p>
+            </header>
+            <ul class="team-card__list">
+              <li>Experienced entrepreneur with over 10 years in startup operations and web3 advisory</li>
+              <li>Former COO, product owner, strategist, and startup consultant at top companies like Candle Nest and Delivery Hero</li>
+              <li>Driven by a passion for human-computer interaction &amp; featured in renowned research projects</li>
+            </ul>
+            <a href="#" class="team-card__arrow" aria-label="Read more about Yuri Choi" data-magnetic>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </article>
+
+          <!-- Card 2 -->
+          <article class="team-card glass" data-reveal-child>
+            <div class="team-card__avatar">
+              <div class="team-card__avatar-img team-card__avatar-img--tae" aria-hidden="true"></div>
+            </div>
+            <header class="team-card__head">
+              <h3>Taeyoung Choi</h3>
+              <p>CTO &amp; Advisor</p>
+            </header>
+            <ul class="team-card__list">
+              <li>Founder of 3+ Startups</li>
+              <li>Ex-Samsung &amp; Hyundai, Head of Engineering</li>
+              <li>20+ years of experience in Software Development</li>
+            </ul>
+            <a href="#" class="team-card__arrow" aria-label="Read more about Taeyoung Choi" data-magnetic>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </article>
+
+          <!-- Card 3 -->
+          <article class="team-card glass" data-reveal-child>
+            <div class="team-card__avatar">
+              <div class="team-card__avatar-img team-card__avatar-img--ant" aria-hidden="true"></div>
+            </div>
+            <header class="team-card__head">
+              <h3>Anthony Blackburn</h3>
+              <p>Advisor</p>
+            </header>
+            <ul class="team-card__list">
+              <li>Chief of Staff and venture partner of 280 Capital</li>
+              <li>Specialist in zero-to-one ecosystem building and Web3 go-to-market strategy</li>
+              <li>Former partnerships lead at the Sui Foundation and entrepreneur in residence for Gunzilla Games</li>
+            </ul>
+            <a href="#" class="team-card__arrow" aria-label="Read more about Anthony Blackburn" data-magnetic>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 17 17 7M9 7h8v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </a>
+          </article>
+        </div>
+
+        <!-- Backed by -->
+        <div class="backed">
+          <span class="backed__label">Backed by:</span>
+          <div class="backed__logos">
+            <div class="backed__logo glass">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="m2 9 4-5 3 4 3-4 4 5-7 7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+              </svg>
+              <span>Movement</span>
+            </div>
+            <div class="backed__logo glass">
+              <span class="backed__logo-big">280</span>
+              <span class="backed__logo-small">CAPITAL</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <!-- TESTIMONIALS                                          -->
+      <!-- ===================================================== -->
+      <section id="testimonials" class="testimonials" data-reveal>
+        <div class="testimonials__grid">
+          <!-- Left column: section title + organic glow graphic -->
+          <header class="testimonials__head">
+            <h2 class="section-title">Let's see<br />what our<br />client say</h2>
+            <!-- Ellipse 11 — warm amber glow under the Sentimint star -->
+            <span class="testimonials__glow" aria-hidden="true"></span>
+            <!-- Sentimint "M" star logo (Group 1707478404) -->
+            <div class="testimonials__shape" aria-hidden="true">
+              <svg viewBox="0 0 300 295" fill="none">
+                <!-- Top spike -->
+                <path d="M150 0 L165 130 L150 175 L135 130 Z" fill="#FADDBB"/>
+                <!-- Right spike -->
+                <path d="M300 145 L170 158 L130 145 L170 132 Z" fill="#FADDBB"/>
+                <!-- Bottom-left M leg -->
+                <path d="M10 290 L75 165 L130 180 L100 295 Z" fill="#FADDBB"/>
+                <!-- Bottom-right M leg -->
+                <path d="M290 290 L225 165 L170 180 L200 295 Z" fill="#FADDBB"/>
+                <!-- Center sparkle -->
+                <path d="M150 110 L160 145 L195 155 L160 165 L150 200 L140 165 L105 155 L140 145 Z" fill="#FADDBB" opacity=".9"/>
+              </svg>
+            </div>
+          </header>
+
+          <!-- Right column: strict vertical stack of quote cards -->
+          <div class="testimonials__list">
+            <article class="quote glass">
+              <p>Sentimint has changed the way I think about capturing moments. Now I am more thoughtful than ever when I make moments with my loved ones!</p>
+              <footer>
+                <span class="quote__avatar quote__avatar--a" aria-hidden="true"></span>
+                <span>
+                  <strong>Tony</strong>
+                  <em>Florida, USA</em>
+                </span>
+              </footer>
+            </article>
+            <article class="quote glass">
+              <p>Sentimint immediately adds more meaning to consumer products. I believe this represents a new paradigm in the way we cherish our loved ones and the memories we share together.</p>
+              <footer>
+                <span class="quote__avatar quote__avatar--b" aria-hidden="true"></span>
+                <span>
+                  <strong>Wang Hao</strong>
+                  <em>Beijing, China</em>
+                </span>
+              </footer>
+            </article>
+
+            <!-- Frame 1707478667 — pager (solid + outline arrow buttons) -->
+            <div class="testimonials__pager" role="group" aria-label="Testimonial pager">
+              <button class="pager-btn pager-btn--solid" aria-label="Previous testimonial" data-magnetic>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m15 6-7 6 7 6" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <button class="pager-btn pager-btn--outline" aria-label="Next testimonial" data-magnetic>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="m9 6 7 6-7 6" stroke="#D1BBA3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <!-- FOOTER                                                -->
+      <!-- ===================================================== -->
+      <footer id="footer" class="footer">
+        <p>Copyright &copy; Sentimint 2024</p>
+      </footer>
+    </main>
+
+    <!-- GSAP -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
