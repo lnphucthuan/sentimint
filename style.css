@@ -1,0 +1,1204 @@
+/* =====================================================================
+   SENTIMINT — design tokens, glassmorphism, layout grid
+   Tokens are taken verbatim from the Figma source of truth:
+   - Display:    Syne 600
+   - Body:       Space Grotesk 300/400
+   - Base:       #010101
+   - Divider:    #524A41
+   - Card grad:  mud-gold linear-gradient (155.07deg)
+   - Ambients:   blurred radial ellipses anchored per section
+   The layout stays in flow (CSS grid + flex) so the design is responsive;
+   no absolute pixel positioning is used for content blocks.
+===================================================================== */
+
+:root {
+  /* ---- Palette (from Figma) --------------------------------------- */
+  --ink-0: #010101;
+  --ink-1: #0a0907;
+  --ink-2: #14110c;
+  --ink-3: #1b1812;
+  --line:  #524a41;
+  --line-soft: rgba(82, 74, 65, 0.5);
+
+  --bone:  #ffffff;           /* primary text */
+  --bone-2:#d8d2c4;           /* secondary text */
+  --bone-3:#9b9484;           /* tertiary text */
+
+  --gold:       #d9b87a;
+  --gold-soft:  #d1bba3;
+  --amber:      #ffd19a;
+  --bronze:     #8f7c65;
+  --mud:        #5b4f41;
+
+  /* ---- Cards (exact Figma gradient) ------------------------------- */
+  --card-gradient: linear-gradient(
+    155.07deg,
+    rgba(91, 79, 65, 0.98)    2.58%,
+    rgba(39, 35, 30, 0.96)    25.20%,
+    rgba(20, 18, 16, 0.964789) 70.67%,
+    rgba(78, 68, 56, 0.974919) 117.31%
+  );
+
+  /* ---- Glow / shadow ---------------------------------------------- */
+  --shadow-card: 0 30px 80px rgba(0,0,0,0.55), 0 2px 0 rgba(255,255,255,0.04) inset;
+  --shadow-pill: 0 18px 50px rgba(0,0,0,0.55);
+
+  /* ---- Radii & motion --------------------------------------------- */
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 24px;            /* matches Figma card radius */
+  --r-xl: 36px;
+  --r-pill: 999px;
+
+  --ease-out-soft: cubic-bezier(.22,.61,.36,1);
+  --ease-back: cubic-bezier(.34,1.56,.64,1);
+
+  /* ---- Layout ----------------------------------------------------- */
+  --rail-w: 64px;
+  --shell-max: 1160px;                              /* Figma artboard inner width */
+  --shell-pad-x: clamp(20px, 5vw, 80px);
+  --section-gap: clamp(80px, 12vw, 160px);          /* Figma rhythm ≈ 120-270px */
+}
+
+/* =====================================================================
+   Base
+===================================================================== */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink-0);
+  color: var(--bone);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+}
+
+img, svg { display: block; max-width: 100%; }
+
+/* =====================================================================
+   Atmospheric ambient — ONE continuous canvas with two massive
+   overlapping ellipses (Figma "Ellipse 16" + "Ellipse 18"). Both share
+   the same mud-gold radial recipe and 81.44px blur, so where their
+   edges meet they melt into a single uninterrupted haze from the Hero
+   down into the Feature showcase.
+===================================================================== */
+.ambient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ambient__blur {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 50%,
+              #D1BBA3 0%, rgba(92, 81, 69, 0) 100%);
+  filter: blur(81.44px);
+  will-change: transform;
+}
+
+/* Ellipse 16 — Primary backlight halo CENTERED behind the Section 2
+   image card. The card sits at ~y=1070–1640 in the document flow;
+   the ellipse is anchored so its 1086px-tall core lands dead-center
+   on the card, producing the wrap-around stage glow visible in the
+   Figma prototype. */
+.ambient__blur--e16 {
+  width: 1201px;
+  height: 1086px;
+  top: 820px;                          /* center ≈ y1363 — dead-center on card */
+  left: 50%;
+  transform: translateX(calc(-50% + 21px));
+  opacity: 0.85;
+}
+
+/* Ellipse 18 — Secondary diffuse layer, also centered on the card but
+   slightly offset downward so the bloom extends just past the lower
+   edge of the card. */
+.ambient__blur--e18 {
+  width: 1201px;
+  height: 1203px;
+  top: 880px;                          /* center ≈ y1481 — card lower-half */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.65;
+}
+
+/* Scale the ambient gracefully on narrower viewports so the absolute
+   Figma pixels don't push the haze off-canvas. The transform-origin
+   keeps the unified composition centered against the shell. */
+@media (max-width: 1440px) {
+  .ambient__blur--e16,
+  .ambient__blur--e18 { transform-origin: 50% 50%; }
+  .ambient__blur--e16 { transform: translateX(calc(-50% + 21px)) scale(0.9); }
+  .ambient__blur--e18 { transform: translateX(-50%)              scale(0.9); }
+}
+@media (max-width: 900px) {
+  .ambient__blur--e16 { transform: translateX(-50%) scale(0.75); top: 760px; opacity: 0.72; }
+  .ambient__blur--e18 { transform: translateX(-50%) scale(0.75); top: 820px; opacity: 0.55; }
+}
+
+.ambient__grain {
+  position: absolute; inset: 0;
+  opacity: .04;
+  mix-blend-mode: overlay;
+  background-image:
+    radial-gradient(rgba(255,255,255,.7) 1px, transparent 1px),
+    radial-gradient(rgba(255,255,255,.4) 1px, transparent 1px);
+  background-size: 3px 3px, 7px 7px;
+  background-position: 0 0, 1px 1px;
+}
+
+/* =====================================================================
+   Glassmorphism utility — uses exact Figma mud-gold gradient + bronze
+   border. Falls back to a flat fill where backdrop-filter isn't supported.
+===================================================================== */
+.glass {
+  background: var(--card-gradient);
+  border: 1px solid var(--bronze);
+  border-radius: var(--r-lg);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+          backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--shadow-card);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: linear-gradient(155deg, #3a322a, #14110c 70%, #2e2820); }
+}
+
+/* =====================================================================
+   Side rails (fixed pill nav + social)
+   Boundary-locked to the 1440px Figma desktop grid (140px / 1260px
+   coordinates). At viewports below 1200px we fluidly snap them back to
+   the viewport edges so they don't crash into the shell content.
+===================================================================== */
+.side-pill {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  width: 52px;                         /* matches Figma rail width */
+  display: flex;
+  justify-content: center;
+}
+
+/* Desktop ≥1200px: anchor inside the 1440px artboard at Figma 140 / 1260 */
+.side-pill--left {
+  /* 50% (viewport mid) − 720 (half artboard) + 140 (Figma left margin)  */
+  left: calc(50% - 1440px / 2 + 140px);
+}
+.side-pill--right {
+  /* 50% (viewport mid) − 720 (half artboard) + 1260 (Figma right rail)  */
+  left: calc(50% - 1440px / 2 + 1260px);
+}
+
+/* Below 1200px the 1440px grid no longer fits — collapse to fluid edge
+   anchoring so the rails never overlap the centered content shell. */
+@media (max-width: 1199px) {
+  .side-pill--left  { left: clamp(8px, 1.4vw, 22px); }
+  .side-pill--right { left: auto; right: clamp(8px, 1.4vw, 22px); }
+}
+
+/* ---- Left rail track (Group 1707478605) ----
+   Exact Figma: 52 × 364, rgba(209,187,163,0.5), 100px radius.
+   No blur, no border, no shadow — pure brutalist tinted glass.
+---------------------------------------------------------------*/
+.side-pill--left {
+  width: 52px;
+  height: 364px;
+  background: rgba(209, 187, 163, 0.5) !important;
+  border-radius: 100px;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+
+/* Sliding active indicator (Ellipse 80) — 48 × 48 solid #D1BBA3 circle
+   that snaps behind the active icon, animated by app.js. */
+.side-pill__indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  margin-left: -24px;
+  border-radius: 50%;
+  background: #D1BBA3 !important;
+  transform: translateY(0);
+  transition: transform .45s var(--ease-back);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Inner icon frame (Frame 1707478632) — 28 × 340, vertical flex,
+   24px gap, centered axis. */
+.side-pill--left .side-pill__list {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+  align-items: center;
+  justify-content: flex-start;
+  list-style: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  margin: 12px auto;
+}
+
+/* Right (social) rail keeps the original glass treatment */
+.side-pill--right .side-pill__list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px;
+  list-style: none;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgba(10,9,7,0.6), rgba(10,9,7,0.4));
+  border: 1px solid var(--line-soft);
+  -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-pill);
+}
+
+/* Icon links */
+.side-pill__btn {
+  --size: 28px;
+  width: var(--size); height: var(--size);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #FFFFFF;
+  position: relative;
+  z-index: 2;
+  transition: color .25s var(--ease-out-soft), transform .25s var(--ease-out-soft);
+}
+.side-pill__btn svg { width: 18px; height: 18px; }
+.side-pill__btn:hover { color: #000; }
+.side-pill__btn.is-active {
+  color: #000000;                       /* sits on top of the sliding #D1BBA3 disc */
+  background: transparent;
+  box-shadow: none;
+}
+.side-pill--right .side-pill__btn {
+  --size: 34px;
+  color: var(--bone-2);
+}
+.side-pill--right .side-pill__btn:hover { color: var(--amber); background: rgba(255,209,154,0.10); }
+.side-pill__btn--social svg { width: 14px; height: 14px; }
+
+/* =====================================================================
+   Shell (center column)
+===================================================================== */
+.shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  padding: 28px var(--shell-pad-x) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;                                            /* gaps replaced by per-section margin-bottom */
+}
+
+/* Luxury breathing room between major sections.
+   Each block clears ~15vh below itself (clamped) to recreate the
+   towering vertical proportions of the Figma 4059px artboard. */
+.feature,
+.toolkit,
+.team,
+.testimonials { margin-bottom: var(--section-gap); }
+.hero         { margin-bottom: calc(var(--section-gap) * 0.7); }
+.testimonials { margin-bottom: calc(var(--section-gap) * 0.6); }
+
+/* ---- Top bar -------------------------------------------------------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  color: var(--bone);
+  line-height: 0;                    /* prevent the svg from picking up text baseline gap */
+}
+.brand__logo {
+  width: auto;
+  height: 40px;                      /* SVG is 254×48 (5.29:1) → scales to ~212×40 */
+  display: block;
+}
+
+/* ---- Utility chip (Frame 1707478474) ------------------------------
+   width 117 × height 52, padding-left 8, border 1px solid #D1BBA3,
+   radius 100px. Contents: [coin icon 28×28] [count "0"] [menu 52×52].
+---------------------------------------------------------------------*/
+.utility-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 0 0 8px;
+  border-radius: 100px;
+  background: transparent;
+  border: 1px solid #D1BBA3;
+  box-shadow: none;
+}
+.utility-chip__coin {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  flex: none;
+}
+.utility-chip__coin svg { width: 22px; height: 22px; }
+.utility-chip__count {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.4;
+  color: #FFFFFF;
+  text-align: center;
+  min-width: 13px;
+}
+.utility-chip__menu {
+  width: 52px; height: 52px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: #D1BBA3;
+  border: 1px solid #D1BBA3;
+  color: #000000;
+  margin: -1px;
+  flex: none;
+}
+.utility-chip__menu svg { width: 24px; height: 24px; }
+
+/* =====================================================================
+   HERO — multi-layer relative stack
+   - The .hero is the relative canvas; children stack with controlled
+     vertical pulls so the title hugs the top bar, the 3D box dominates
+     the middle, and the tagline flanks the box's lower-right corner.
+   - The structure is in normal flow; no absolute pixel coordinates are
+     used so the relationship survives the responsive collapse.
+===================================================================== */
+.hero {
+  position: relative;
+  min-height: clamp(680px, 90vh, 880px);    /* Figma: hero spans ~800px on canvas */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding-top: 0;
+}
+
+/* Title — Syne 600 / 82px / 1.2 / #FFFFFF.
+   Figma: left-aligned within the 1160 shell, slightly inset from edge. */
+.hero__title {
+  position: relative;
+  z-index: 3;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: clamp(40px, 7.6vw, 82px);
+  line-height: 1.2;
+  letter-spacing: normal;
+  color: #FFFFFF;
+  margin: 16px 0 0;
+  text-align: left;
+}
+.hero__title .word {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* Stage — a relative container that hosts the centered 3D box on
+   layer 1 and the right-anchored tagline on layer 2. The stage itself
+   stays in the normal flow so the parallax JS bounds resolve correctly. */
+.hero__stage {
+  position: relative;
+  width: 100%;
+  margin-top: clamp(24px, 4vw, 56px);
+  perspective: 1200px;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;                            /* center the 3D box on the X-axis */
+}
+
+/* The parallaxed 3D box stack. .hero__stage-inner is what app.js tilts. */
+.hero__stage-inner {
+  position: relative;
+  z-index: 1;
+  width: min(640px, 68vw);          /* enlarged so the 3D model reads bigger */
+  aspect-ratio: 1;
+  transform-style: preserve-3d;
+}
+
+/* ---- WebGL canvas (Phase 4 / Step 07) ----------------------------- */
+#hero-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  pointer-events: auto;
+  background: transparent;
+}
+
+/* Graceful fallback shown only when WebGL is unavailable or GLB load
+   fails. JS toggles `.hero__stage-inner.is-fallback` to reveal it. */
+.hero__fallback {
+  position: absolute;
+  inset: 8%;
+  border-radius: 14px;
+  background:
+    radial-gradient(60% 50% at 50% 30%, rgba(217,184,122,0.25), transparent 70%),
+    linear-gradient(160deg, #2a1f12 0%, #0a0805 80%);
+  border: 1px solid rgba(217,184,122,0.18);
+  box-shadow:
+    0 60px 120px rgba(0,0,0,0.65),
+    inset 0 0 0 1px rgba(255,255,255,0.04);
+  display: none;
+  pointer-events: none;
+}
+.hero__stage-inner.is-fallback .hero__fallback { display: block; }
+.hero__stage-inner.is-fallback #hero-canvas    { display: none; }
+/* Legacy .hero__box / .hero__box-* / .hero__lens / .hero__gem classes
+   were removed alongside the static gift-box markup in index.html when
+   the WebGL canvas took over. The graceful CSS fallback now lives on
+   `.hero__fallback` (see WebGL block above). */
+/* (grid cell styles removed with the static box markup) */
+/* (lens / gem / cell decoration removed — WebGL renders the box now) */
+
+/* Tagline — Figma: Syne 400 / 28px / 1.4 / letter-spacing 0.03em / #FFFFFF.
+   Right-edge anchored, pulled up to flank the box's lower half. */
+.hero__tagline {
+  position: relative;
+  z-index: 2;
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  color: #FFFFFF;
+  text-align: right;
+  font-size: clamp(18px, 2vw, 28px);
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+  width: max-content;
+  max-width: 340px;
+  justify-self: end;
+  margin-top: clamp(-180px, -11vw, -120px);
+  padding-right: clamp(0px, 4vw, 40px);
+}
+
+/* Scroll cue — Figma: Space Grotesk 400 / 16px / line-height 20px / #FFFFFF */
+.scroll-cue {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: clamp(40px, 6vw, 72px) auto 0;
+  color: #FFFFFF;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: 0;
+}
+.scroll-cue svg { width: 22px; height: 22px; animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); opacity:.6 } 50% { transform: translateY(4px); opacity: 1 } }
+
+/* =====================================================================
+   Brutalist Primary Button — solid mud-gold, hard edges
+   Figma: background #D1BBA3, radius 100px, padding 12px 20px,
+          Space Grotesk 500 / 16-20px / 1.4 / #000
+===================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 16px;          /* compact for inline placements (Try Now) */
+  line-height: 1.4;
+  text-align: center;
+  letter-spacing: 0;
+  transition: transform .25s var(--ease-out-soft), background-color .25s var(--ease-out-soft);
+  will-change: transform;
+}
+.btn--cream {
+  background: #D1BBA3 !important;
+  color: #000000 !important;
+  border: 1px solid #D1BBA3;
+  box-shadow: none;
+}
+.btn--cream:hover {
+  background: #e2cdb5 !important;
+  box-shadow: none;
+}
+.btn--lg {
+  padding: 14px 32px;
+  font-size: 20px;
+}
+
+/* =====================================================================
+   FEATURE SHOWCASE — brutalist image card
+   Figma: 960 × 572, border-radius 36, full-bleed cover photo,
+   no border, no backdrop blur, no inset gradient panel.
+===================================================================== */
+.feature__card {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  aspect-ratio: 960 / 572;
+  background:
+    /* readability tint over the photo so the headline + CTA stay legible */
+    linear-gradient(180deg, rgba(0,0,0,0.30) 0%, rgba(0,0,0,0.55) 100%),
+    url('image-card-section2.jpg') center/cover no-repeat,
+    /* fallback gradient if the photo can't load */
+    radial-gradient(120% 90% at 50% 30%, #2a1f12 0%, #050402 80%);
+  border-radius: 36px;
+  border: none !important;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 4vw, 56px);
+}
+/* CSS-only hex grid pattern that backs the card if the photo never loads.
+   Sits below the photo & tint stack so the image always wins when available. */
+.feature__card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    /* tiled cube grid */
+    linear-gradient(120deg, transparent 49%, rgba(217,184,122,0.08) 50%, transparent 51%),
+    linear-gradient(60deg,  transparent 49%, rgba(217,184,122,0.08) 50%, transparent 51%),
+    linear-gradient(0deg,   transparent 49%, rgba(217,184,122,0.06) 50%, transparent 51%);
+  background-size: 60px 104px, 60px 104px, 60px 104px;
+  background-position: center;
+  opacity: .9;
+}
+.feature__bg {
+  position: absolute; inset: 0; z-index: -1;
+  /* The ambient bleed-through now reaches this card directly; keep
+     this layer minimal so the photograph remains the hero. */
+  background: none;
+}
+.feature__bg::after { content: none; }
+.feature__content {
+  position: relative;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 28px;
+  padding: 0;
+  margin: auto 0;                      /* vertically center inside the image card */
+}
+/* Figma: Syne 600 / 52px / 1.2 / center / #FFFFFF (width 676) */
+.feature__title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: clamp(28px, 4.8vw, 52px);
+  line-height: 1.2;
+  color: #FFFFFF;
+  max-width: 676px;
+}
+
+/* Feature pills row — pinned to the bottom of the image card.
+   Layout: [icon 28×28] [title + description] */
+.feature__pills {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 3vw, 36px);
+  list-style: none;
+  width: 100%;
+  margin-top: 0;
+}
+.feature__pill {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 0;
+  background: transparent;
+  border: none;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+.feature__pill-icon {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+}
+.feature__pill-icon svg { width: 26px; height: 26px; }
+/* Figma: Syne 600 / 16px / line-height 130% / #FFFFFF */
+.feature__pill h3 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+/* Figma: Space Grotesk 300 / 12px / 15px / #FFFFFF */
+.feature__pill p {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 15px;
+  color: #FFFFFF;
+  max-width: 231px;
+}
+
+/* =====================================================================
+   PRODUCT TOOLKIT
+===================================================================== */
+/* Figma: Syne 600 / 52px / 1.2 / #FFFFFF, left-aligned per layout */
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: clamp(32px, 4.8vw, 52px);
+  line-height: 1.2;
+  color: #FFFFFF;
+  text-align: left;
+}
+
+.toolkit__head { margin-bottom: 8px; }
+
+.toolkit__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: clamp(28px, 5vw, 60px);
+  align-items: center;
+}
+
+/* Phones — Figma toolkit (Group 1707478576 + 1707478573).
+   Real app screenshots; each phone is just a positioned image with a
+   subtle drop shadow. Aspect ratio matches Figma's 179.98 × 367.74. */
+.toolkit__phones {
+  position: relative;
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.phone {
+  position: absolute;
+  width: 180px;
+  aspect-ratio: 180 / 368;
+}
+.phone--back  { top: 0;    left: 12%;  transform: rotate(-8deg); }
+.phone--front { bottom: 0; right: 8%;  transform: rotate(6deg); z-index: 2; }
+.phone__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 28px;
+  box-shadow:
+    0 30px 60px rgba(0,0,0,.6),
+    0 0 0 1px rgba(255,255,255,0.04) inset;
+  display: block;
+}
+
+/* Steps wrap (Frame 1707478663): flex column, gap 52, max-width 517 */
+.toolkit__steps-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vw, 52px);
+  max-width: 517px;
+  width: 100%;
+}
+/* Steps list (Frame 1707478646): gap 32 between numbered rows */
+.toolkit__steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.toolkit__step {
+  display: grid;
+  grid-template-columns: 71px 1fr;        /* Figma: number column 71px wide */
+  gap: 0;
+  align-items: start;
+  padding: 0 0 32px 0;
+  border-bottom: 1px solid #524A41;       /* Vector 104/105 */
+}
+.toolkit__step:last-of-type { border-bottom: 0; padding-bottom: 0; }
+
+/* Figma: Syne 600 / 42px / 1.2 / #FFFFFF */
+.toolkit__num {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.2;
+  color: #FFFFFF;
+  letter-spacing: 0;
+}
+/* Figma: Syne 400 / 24px / 1.3 / #FFFFFF */
+.toolkit__step p {
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  font-size: clamp(16px, 1.9vw, 24px);
+  line-height: 1.3;
+  color: #FFFFFF;
+  max-width: 446px;
+  padding-top: 8px;
+}
+.toolkit__cta { align-self: flex-start; }
+
+/* =====================================================================
+   TEAM
+===================================================================== */
+/* Frame 1707478661 — three 306.24px cards, 28px gap */
+.team__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-top: 32px;
+}
+
+/* Figma card: 306.24 × 445.24, padding 24px sides; room at bottom for the arrow */
+.team-card {
+  position: relative;
+  padding: 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;                  /* arrow stays inside the card now */
+  min-height: 445px;
+  transition: transform .35s var(--ease-out-soft), box-shadow .35s var(--ease-out-soft);
+}
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 40px 100px rgba(255,209,154,0.18),
+    0 30px 80px rgba(0,0,0,0.55),
+    0 2px 0 rgba(255,255,255,0.06) inset;
+}
+/* Avatar — Figma: 80 × 80, 1px solid #D1BBA3, no padding ring */
+.team-card__avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 1px solid #D1BBA3;
+  margin-top: 4px;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+}
+.team-card__avatar-img {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: #1a1812;
+}
+.team-card__avatar-img--yuri {
+  background-image:
+    radial-gradient(circle at 50% 40%, #3a2a18 0%, #1a120a 100%),
+    radial-gradient(circle at 50% 35%, #d9b9a0 18%, transparent 19%);
+}
+.team-card__avatar-img--tae {
+  background-image:
+    radial-gradient(circle at 50% 40%, #2a2418 0%, #100c06 100%),
+    radial-gradient(circle at 50% 35%, #c8b59c 18%, transparent 19%);
+}
+.team-card__avatar-img--ant {
+  background-image:
+    radial-gradient(circle at 50% 40%, #3a2a14 0%, #1a1208 100%),
+    radial-gradient(circle at 50% 35%, #d4b48c 18%, transparent 19%);
+}
+
+.team-card__head { margin: 12px 0 24px; }
+/* Figma name: Space Grotesk 500 / 24px / line-height 31 / capitalize / #FFFFFF */
+.team-card__head h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 31px;
+  text-transform: capitalize;
+  color: #FFFFFF;
+  text-align: center;
+}
+/* Figma role: Space Grotesk 700 / 16px / 20px / capitalize / #D1BBA3 */
+.team-card__head p {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 20px;
+  text-transform: capitalize;
+  color: #D1BBA3;
+  text-align: center;
+  margin-top: 0;
+}
+.team-card__list {
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 248px;
+  margin: 0 auto;
+}
+/* Figma list item: Space Grotesk 400 / 14px / 18px / #FFFFFF, bullet 20px to the left */
+.team-card__list li {
+  position: relative;
+  padding-left: 32px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 18px;
+  color: #FFFFFF;
+}
+.team-card__list li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px;
+  width: 16px; height: 4px;
+  background: #F1F2F2;
+  border-radius: 2px;
+}
+/* ---- Arrow disc (Group 421) ---------------------------------------
+   Figma: 77.24 × 77.24, sits FLUSH at the bottom-right INSIDE the
+   card (16px inset). Solid mud-gold with a black arrow. No subtract
+   ring — clean inline placement.
+---------------------------------------------------------------------*/
+.team-card__arrow {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: clamp(54px, 5vw, 64px);     /* tuned to read at 1/5 card width */
+  height: clamp(54px, 5vw, 64px);
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: #D1BBA3;
+  color: #000000;
+  border: none;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.40);
+  transition: transform .25s var(--ease-out-soft);
+  z-index: 3;
+}
+.team-card__arrow svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.8;
+}
+.team-card:hover .team-card__arrow { transform: rotate(-12deg) scale(1.04); }
+
+/* Backed by — Frame 1707478660, horizontal row with space-between.
+   Label left, two 200×90 gradient logo cards right. */
+.backed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-top: 56px;
+  flex-wrap: wrap;
+}
+/* Figma label: Syne 600 / 36px / 1.2 / #FFFFFF */
+.backed__label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.2;
+  color: #FFFFFF;
+}
+.backed__logos { display: flex; gap: 28px; flex-wrap: wrap; }
+/* Figma logo card: 200 × 90, padding 34/25 or 18/53, card gradient + border */
+.backed__logo {
+  width: 200px;
+  height: 90px;
+  padding: 0;
+  border-radius: 24px;
+  display: inline-flex; align-items: center; gap: 10px;
+  justify-content: center;
+  background: var(--card-gradient);
+  border: 1px solid var(--bronze);
+  color: #FFFFFF;
+}
+.backed__logo svg { width: 20px; height: 20px; color: #FFFFFF; }
+.backed__logo span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  color: #FFFFFF;
+}
+.backed__logo-big {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  letter-spacing: .04em;
+  color: #FFFFFF;
+}
+.backed__logo-small {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  letter-spacing: .35em;
+  color: #FFFFFF;
+  margin-left: 6px;
+}
+
+/* =====================================================================
+   TESTIMONIALS — strict 2-column layout (no carousel, no nav buttons)
+   Left:  section title + Ellipse 11 amber glow + organic shape
+   Right: vertical stack of quote cards, max-width 501px, 36px gap
+===================================================================== */
+/* Figma: title col + 501px content col, with ~80px gutter */
+.testimonials__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 501px);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+.testimonials__head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  align-items: flex-start;
+}
+
+/* Ellipse 11 — amber glow under the organic shape */
+.testimonials__glow {
+  position: absolute;
+  left: 8%;
+  top: 38%;
+  width: 360px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(52.17% 52.17% at 49.99% 49.99%,
+              #FFD19A 0%, rgba(11, 11, 11, 0) 100%);
+  opacity: 0.9;
+  filter: blur(28.71px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.testimonials__shape {
+  position: relative;
+  z-index: 1;
+  width: clamp(200px, 28vw, 300px);
+  margin-top: 40px;
+}
+.testimonials__shape svg {
+  width: 100%; height: auto;
+  filter: drop-shadow(0 0 40px rgba(255,209,154,.45));
+}
+
+/* Frame 1707478670 — strict vertical stack of two quote cards,
+   max-width 501, gap 36. */
+.testimonials__list {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  max-width: 501px;
+  width: 100%;
+  margin-left: 0;
+}
+/* No glass container — Figma quotes are flat text + footer + divider */
+.quote {
+  padding: 0 0 36px 0;
+  border: none;
+  background: transparent;
+  border-bottom: 1px solid #524A41;        /* Vector 105 divider */
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.quote:last-of-type { border-bottom: 0; padding-bottom: 0; }
+
+/* Figma quote text: Syne 400 / 20px / 1.3 / #FFFFFF */
+.quote p {
+  font-family: 'Syne', sans-serif;
+  font-weight: 400;
+  font-size: clamp(16px, 1.6vw, 20px);
+  line-height: 1.3;
+  color: #FFFFFF;
+  margin: 0;
+}
+/* Frame 1707478665 — avatar + name/location row */
+.quote footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #FFFFFF;
+}
+.quote footer > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+/* Figma name: Syne 600 / 16px / 1.3 / #FFFFFF */
+.quote footer strong {
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+  color: #FFFFFF;
+  display: block;
+}
+/* Figma location: Syne 400 / 14px / 1.3 / #FFFFFF */
+.quote footer em {
+  font-family: 'Syne', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.3;
+  color: #FFFFFF;
+}
+/* Figma avatar: 60 × 60 with 1px solid #D1BBA3 */
+.quote__avatar {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  border: 1px solid #D1BBA3;
+  background-color: #1a1812;
+  background-size: cover;
+  background-position: center;
+  flex: none;
+}
+.quote__avatar--a {
+  background-image:
+    radial-gradient(circle at 50% 45%, #3a2a18 0%, #1a120a 100%),
+    radial-gradient(circle at 50% 35%, #c8b09a 22%, transparent 23%);
+}
+.quote__avatar--b {
+  background-image:
+    radial-gradient(circle at 50% 45%, #2a2418 0%, #100c06 100%),
+    radial-gradient(circle at 50% 35%, #b89a7a 22%, transparent 23%);
+}
+
+/* Frame 1707478667 — pager arrows under the quote stack.
+   Left button: solid #D1BBA3 fill. Right button: 1px outline #D1BBA3. */
+.testimonials__pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+.pager-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: transform .25s var(--ease-out-soft), background-color .25s var(--ease-out-soft);
+}
+.pager-btn--solid {
+  background: #D1BBA3;
+  border: 1px solid #D1BBA3;
+}
+.pager-btn--solid:hover { background: #e2cdb5; }
+.pager-btn--outline {
+  background: transparent;
+  border: 1px solid #D1BBA3;
+}
+.pager-btn--outline:hover { background: rgba(209,187,163,0.15); }
+.pager-btn svg { width: 18px; height: 18px; }
+
+/* Carousel/nav UI removed — testimonials are now a strict vertical stack. */
+
+/* =====================================================================
+   FOOTER — solid mud-gold block (no gradient)
+   Figma: #D1BBA3, 58px tall, full-bleed, Space Grotesk 700 / 20px / 1.3
+===================================================================== */
+.footer {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 58px;
+  margin-top: 60px;
+  display: grid;
+  place-items: center;
+  background: #D1BBA3 !important;
+  color: #000000;
+}
+.footer p {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #000000;
+  margin: 0;
+}
+
+/* =====================================================================
+   Responsive — collapse to single column under 768px
+===================================================================== */
+@media (max-width: 900px) {
+  .toolkit__grid       { grid-template-columns: 1fr; }
+  .testimonials__grid  { grid-template-columns: 1fr; }
+  .team__grid          { grid-template-columns: 1fr 1fr; }
+  .feature__pills      { grid-template-columns: 1fr; }
+  .testimonials__list  { max-width: none; }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --shell-pad-x: 18px;
+    --section-gap: clamp(72px, 12vh, 120px);        /* relax vertical rhythm on mobile */
+  }
+  .side-pill { display: none; }
+  .shell { padding-top: 18px; }
+  .team__grid { grid-template-columns: 1fr; }
+  .toolkit__phones { height: 320px; }
+
+  /* Release the hero overlap on mobile: tagline returns under the box */
+  .hero { min-height: auto; }
+  .hero__title { margin-top: 0; }
+  .hero__stage { justify-items: center; }
+  .hero__tagline {
+    text-align: center;
+    justify-self: center;
+    margin: 18px auto 0;
+    padding-right: 0;
+  }
+
+  .feature__content { padding: 14px 4px 12px; }
+  .testimonials__head { align-items: center; text-align: center; }
+  .testimonials__shape { margin: 0 auto; }
+  .footer { width: 100%; left: 0; transform: none; }
+
+  /* Tone the unified haze down on mobile to keep the canvas calm */
+  .ambient__blur--e16 { opacity: 0.45 !important; }
+  .ambient__blur--e18 { opacity: 0.35 !important; }
+}
+
+/* =====================================================================
+   Reveal initial states + reduced-motion overrides
+===================================================================== */
+[data-reveal] > *:not(:first-child),
+[data-reveal-child],
+[data-reveal] .feature__pill {
+  opacity: 0;
+  transform: translateY(30px);
+}
+[data-word-reveal] .word { opacity: 0; transform: translateY(40px); }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] > *,
+  [data-reveal-child],
+  [data-reveal] .feature__pill,
+  [data-word-reveal] .word {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .scroll-cue svg { animation: none; }
+  html { scroll-behavior: auto; }
+}
